@@ -7,6 +7,9 @@ export function openMemoryDatabaseAtPath(dbPath: string, allowExtension: boolean
   ensureDir(dir);
   const { DatabaseSync } = requireNodeSqlite();
   const db = new DatabaseSync(dbPath, { allowExtension });
+  // Enable WAL to reduce writer/reader contention and make shared caches feasible.
+  // WAL is persistent per-DB; running it on every open is safe and idempotent.
+  db.exec("PRAGMA journal_mode = WAL");
   // busy_timeout is per-connection and resets to 0 on restart.
   // Set it on every open so concurrent processes retry instead of
   // failing immediately with SQLITE_BUSY.
